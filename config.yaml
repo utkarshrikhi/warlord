@@ -1,0 +1,42 @@
+# reelbot settings. Anything left out falls back to the defaults in reelbot/config.py.
+# Secrets (API keys, Instagram token) go in .env, not here.
+
+claude:
+  model: claude-opus-5-5
+  effort: medium        # low | medium | high
+  scenes: 5             # 4-7 keeps reels around 20-40 seconds
+  language: English
+
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  subtitles: true
+  outro_text: Follow for more stories!
+  outro_voice: Follow for more stories!
+
+tts:
+  provider: edge        # edge (free, natural voices) | gtts | none
+  voice: en-US-AnaNeural   # list voices: edge-tts --list-voices
+  rate: "+0%"
+
+music:
+  dir: assets/music
+  volume: 0.12
+
+instagram:
+  api_version: v23.0
+  upload_mode: resumable   # resumable = upload from disk; url = host first (see hosting)
+  always_hashtags: [reelbot, animatedstory]
+  max_hashtags: 15
+
+hosting:                   # only used when upload_mode is url
+  provider: s3             # s3 | cloudinary
+  s3_bucket: ""
+  s3_region: ""
+
+schedule:
+  timezone: UTC            # your IANA timezone, e.g. America/New_York
+  times: ["09:30", "19:00"]
+  topics: []               # empty = rotate through all topics in topics.yaml
+  auto_post: true

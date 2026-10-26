@@ -1,0 +1,20 @@
+{
+  "title": "Pip and the Lost Star",
+  "hook": "One night, a star fell right into Pip's backyard.",
+  "moral": "Helping a friend home is the brightest thing you can do.",
+  "topic": "Unlikely friendship",
+  "characters": [
+    {"name": "Pip", "kind": "fox", "color": "orange"},
+    {"name": "Zib", "kind": "alien", "color": "green"},
+    {"name": "Bolt", "kind": "robot", "color": "gray"}
+  ],
+  "scenes": [
+    {"narration": "One night, a tiny star crashed right into Pip the fox's backyard.", "background": "meadow", "time_of_day": "night", "effect": "sparkles", "props": ["star", "house"], "characters": [{"name": "Pip", "action": "jump", "position": "center", "line": "Whoa! What was that?"}]},
+    {"narration": "It wasn't a star at all. It was Zib, a little alien who had lost the way home.", "background": "meadow", "time_of_day": "night", "effect": "none", "props": ["rock"], "characters": [{"name": "Pip", "action": "idle", "position": "left", "line": ""}, {"name": "Zib", "action": "sad", "position": "right", "line": "I miss my planet."}]},
+    {"narration": "Pip knew exactly who could help: Bolt, the cleverest robot in the city.", "background": "city", "time_of_day": "night", "effect": "none", "props": ["lamp"], "characters": [{"name": "Pip", "action": "walk_right", "position": "left", "line": ""}, {"name": "Bolt", "action": "wave", "position": "right", "line": "Leave it to me!"}]},
+    {"narration": "Together they built a rocket out of old boxes, rain and all.", "background": "room", "time_of_day": "day", "effect": "rain", "props": ["rocket", "book"], "characters": [{"name": "Bolt", "action": "dance", "position": "left", "line": ""}, {"name": "Zib", "action": "talk", "position": "center", "line": "It's perfect!"}, {"name": "Pip", "action": "jump", "position": "right", "line": ""}]},
+    {"narration": "Three, two, one... Zib zoomed into space and waved goodbye from the stars.", "background": "space", "time_of_day": "night", "effect": "stars", "props": ["rocket"], "characters": [{"name": "Zib", "action": "celebrate", "position": "center", "line": "Thank you, friends!"}]}
+  ],
+  "caption": "A tiny star crashes into a fox's backyard... but it's not a star at all. Who would you call to help a lost friend?",
+  "hashtags": ["animatedstory", "kidsstories", "friendship", "cartoon", "bedtimestory", "space", "wholesome", "storytime"]
+}

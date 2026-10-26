@@ -1,0 +1,59 @@
+# Preset plots/topics. Pick one with `reelbot generate --topic <key>`,
+# or let `reelbot auto` rotate through them.
+# Add your own: name and description are required, the rest is optional.
+
+friendship:
+  name: Unlikely friendship
+  description: Two very different characters start as strangers or rivals and end up best friends after helping each other.
+  mood: warm, heartfelt
+  audience: kids and families
+  hashtags: [friendship, kidsstories, animatedshorts, wholesome]
+
+bedtime:
+  name: Bedtime fable
+  description: A calm, gentle story that ends with a small moral, set at sunset or night.
+  mood: soothing, dreamy
+  audience: young kids at bedtime
+  hashtags: [bedtimestory, fable, kidsanimation, storytime]
+
+space:
+  name: Space adventure
+  description: A curious character travels to space, meets an alien and solves a problem together.
+  mood: exciting, wondrous
+  audience: kids
+  hashtags: [spaceadventure, animation, kidsstories, cartoon]
+
+funny_animals:
+  name: Funny animals
+  description: A silly misunderstanding between animals that ends with a funny twist.
+  mood: playful, comedic
+  audience: everyone
+  hashtags: [funnyanimals, cartoon, comedy, animatedshorts]
+
+motivation:
+  name: Never give up
+  description: A character fails at something several times, keeps trying, and finally succeeds.
+  mood: uplifting, motivational
+  audience: teens and adults
+  hashtags: [motivation, nevergiveup, inspiration, animatedstory]
+
+kindness:
+  name: Small act of kindness
+  description: One small kind act spreads and changes someone's day.
+  mood: touching
+  audience: everyone
+  hashtags: [kindness, wholesome, goodvibes, shortstory]
+
+mystery:
+  name: Little mystery
+  description: Something goes missing and a character follows clues to find it; the answer is surprising but harmless.
+  mood: curious, light suspense
+  audience: kids
+  hashtags: [mystery, kidsstories, cartoon, storytime]
+
+seasons:
+  name: Seasonal story
+  description: A short story about a holiday or the current season (snow, rain, beach, harvest).
+  mood: cozy, festive
+  audience: everyone
+  hashtags: [seasons, cozy, animation, storytime]

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reelbot"
+version = "0.1.0"
+description = "Auto-generate simple animated story videos and post them as Instagram Reels"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.75",
+    "edge-tts>=7.0",
+    "Pillow>=10.0",
+    "PyYAML>=6.0",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+s3 = ["boto3"]
+gtts = ["gTTS"]
+dev = ["pytest"]
+
+[project.scripts]
+reelbot = "reelbot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["reelbot*"]

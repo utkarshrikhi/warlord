@@ -1,0 +1,7 @@
+.env
+output/
+__pycache__/
+*.egg-info/
+.venv/
+assets/music/*
+!assets/music/README.md
