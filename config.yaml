@@ -8,6 +8,8 @@ claude:
   language: English
 
 video:
+  style: illustrated    # illustrated (AI image per scene) | cartoon (code-drawn, free, offline)
+  motion: true          # slow pan/zoom on each still
   width: 1080
   height: 1920
   fps: 30
@@ -15,9 +17,33 @@ video:
   outro_text: Follow for more stories!
   outro_voice: Follow for more stories!
 
+images:
+  provider: gemini      # gemini | openai | placeholder (free offline preview, no API calls)
+  gemini_model: gemini-nano-banana-2.1
+  openai_model: gpt-image-2
+  # The look of every scene. Tweak freely; it is sent with every image request.
+  style: >-
+    Clean 2D digital cartoon illustration like popular animated storytime channels.
+    Characters are simple stick figures with large round white heads, thin black line
+    arms and legs, small dot eyes and small expressive mouths; some wear simple clothes
+    (t-shirt, skirt, cap) and have simple cartoon hair. Backgrounds are detailed and
+    realistic-looking everyday places drawn with clean dark outlines, flat soft shading,
+    accurate perspective, soft natural light and a muted, slightly desaturated color palette.
+
+# Recurring main character. Its reference image is drawn once (`reelbot mascot`)
+# and passed to every scene so the character looks the same in every video.
+# You can replace assets/mascot.png with your own drawing.
+mascot:
+  name: Max
+  description: >-
+    a stick-figure guy with a big round white head, a red baseball cap, messy brown hair
+    sticking out under the cap, small black dot eyes, thin black line body, arms and legs,
+    and white sneakers
+  reference: assets/mascot.png
+
 tts:
   provider: edge        # edge (free, natural voices) | gtts | none
-  voice: en-US-AnaNeural   # list voices: edge-tts --list-voices
+  voice: en-US-AndrewNeural   # list voices: edge-tts --list-voices
   rate: "+0%"
 
 music:

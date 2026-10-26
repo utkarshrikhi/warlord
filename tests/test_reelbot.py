@@ -15,6 +15,7 @@ from reelbot.story import Story
 
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = json.loads((ROOT / "examples" / "sample_story.json").read_text())
+ILLUSTRATED = json.loads((ROOT / "examples" / "sample_illustrated.json").read_text())
 
 
 @pytest.fixture
@@ -23,7 +24,9 @@ def cfg(tmp_path):
         "paths": {"output": str(tmp_path / "out"), "topics": str(ROOT / "topics.yaml")},
         "music": {"dir": str(tmp_path / "no-music")},
         "tts": {"provider": "none"},
-        "video": {"width": 216, "height": 384, "fps": 6, "preset": "ultrafast"},
+        "video": {"width": 216, "height": 384, "fps": 6, "preset": "ultrafast", "style": "cartoon"},
+        "images": {"provider": "placeholder", "parallel": 2},
+        "mascot": {"reference": str(tmp_path / "mascot.png")},
     })
 
 
@@ -159,3 +162,71 @@ def test_render_end_to_end(cfg, tmp_path):
     assert out.stdout.strip() == "216,384"
     assert (folder / "caption.txt").read_text().startswith(d["caption"])
     assert pipeline.load_history(cfg)[-1]["title"] == d["title"]
+
+
+def test_illustrated_prompt_spec_and_mascot_inserted(monkeypatch):
+    import anthropic
+
+    captured = {}
+    d = json.loads(json.dumps(ILLUSTRATED))
+    d["characters"] = [c for c in d["characters"] if c["name"] != "Max"]
+
+    class FakeMessages:
+        def create(self, **kw):
+            captured.update(kw)
+            return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=json.dumps(d))])
+
+    monkeypatch.setattr(anthropic, "Anthropic", lambda: SimpleNamespace(messages=FakeMessages()))
+    mascot = {"name": "Max", "description": "red cap"}
+    s = story_mod.write_story({"name": "t", "description": "d"}, model="m", effort="low", scene_count=5,
+                              style="illustrated", mascot=mascot)
+    assert "Max" in captured["system"] and "image_prompt" in captured["system"]
+    assert captured["output_config"]["format"]["schema"] is story_mod.ILLUSTRATED_SCHEMA
+    assert s.characters[0].name == "Max" and s.scenes[0].image_prompt
+
+
+def test_scene_prompt_references():
+    from reelbot.images import scene_prompt
+
+    s = Story.from_dict(ILLUSTRATED)
+    icfg = {"style": "stick figures"}
+    mascot = {"name": "Max", "description": "red cap"}
+    p = scene_prompt(s, 1, icfg, mascot, has_mascot_ref=True, has_style_ref=True)
+    assert "first reference image" in p and "second reference image" in p
+    assert "Lena: a stick-figure woman" in p and p.endswith(s.scenes[1].image_prompt)
+    p0 = scene_prompt(s, 0, icfg, mascot, has_mascot_ref=False, has_style_ref=False)
+    assert "reference image" not in p0
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg not installed")
+def test_illustrated_render_and_redraw(cfg, tmp_path):
+    cfg["video"]["style"] = "illustrated"
+    story_file = tmp_path / "s.json"
+    d = json.loads(json.dumps(ILLUSTRATED))
+    d["scenes"] = d["scenes"][:3]
+    story_file.write_text(json.dumps(d))
+    folder = pipeline.generate(cfg, story_file=story_file, log=lambda *a: None)
+    assert Path(cfg["mascot"]["reference"]).is_file()
+    images = sorted(folder.glob("scene_*.png"))
+    assert len(images) == 3 and (folder / "thumbnail.jpg").is_file()
+    assert "first reference image" in (folder / "scene_01.prompt.txt").read_text()
+
+    before = {p.name: p.stat().st_mtime_ns for p in images}
+    pipeline.redraw(cfg, folder, 2, hint="closer shot", log=lambda *a: None)
+    after = {p.name: p.stat().st_mtime_ns for p in sorted(folder.glob("scene_*.png"))}
+    assert after["scene_00.png"] == before["scene_00.png"]
+    assert after["scene_01.png"] != before["scene_01.png"]
+    assert json.loads((folder / "story.json").read_text())["scenes"][1]["image_prompt"].endswith("closer shot")
+
+
+def test_wide_image_is_letterboxed_not_cropped(tmp_path):
+    from PIL import Image
+    from reelbot.render.engine import Segment
+    from reelbot.render.stills import StillsRenderer
+
+    wide = tmp_path / "wide.png"
+    Image.new("RGB", (1600, 900), (255, 0, 0)).save(wide)
+    r = StillsRenderer(Story.from_dict(ILLUSTRATED), [Segment(0, 4, 0)], {"width": 216, "height": 384, "fps": 6}, [wide])
+    still = r.still(0)
+    top = still.getpixel((still.width // 2, 5))
+    assert top[0] < 200  # blurred/darkened backdrop above the picture, not the red image itself

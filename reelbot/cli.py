@@ -25,6 +25,22 @@ def cmd_generate(cfg, args):
         pipeline.post(cfg, folder)
 
 
+def cmd_render(cfg, args):
+    pipeline.render(cfg, Path(args.folder))
+
+
+def cmd_redraw(cfg, args):
+    pipeline.redraw(cfg, Path(args.folder), args.scene, args.hint)
+
+
+def cmd_mascot(cfg, args):
+    from .images import ensure_mascot
+
+    ref = ensure_mascot(cfg, force=True)
+    print(f"Mascot reference saved to {ref}. Replace it with your own image any time." if ref
+          else "No mascot configured (set mascot.name in config.yaml).")
+
+
 def cmd_post(cfg, args):
     pipeline.post(cfg, Path(args.folder))
 
@@ -56,6 +72,13 @@ def cmd_check(cfg, args):
     report(bool(shutil.which("ffmpeg")) and bool(shutil.which("ffprobe")), "ffmpeg/ffprobe on PATH",
            "install ffmpeg")
     report(bool(os.environ.get("ANTHROPIC_API_KEY")), "ANTHROPIC_API_KEY set", "add it to .env")
+    if cfg["video"].get("style", "illustrated") == "illustrated":
+        prov = cfg["images"]["provider"]
+        need = {"gemini": ["GEMINI_API_KEY", "GOOGLE_API_KEY"], "openai": ["OPENAI_API_KEY"]}.get(prov, [])
+        if need:
+            report(any(os.environ.get(n) for n in need), f"{need[0]} set (images: {prov})", "add it to .env")
+        ref = Path((cfg.get("mascot") or {}).get("reference", "assets/mascot.png"))
+        print(f"[--] mascot reference {'found at ' + str(ref) if ref.is_file() else 'missing; drawn on first run (or: reelbot mascot)'}")
     try:
         n = len(load_topics(cfg))
         report(n > 0, f"{n} topics loaded")
@@ -92,6 +115,18 @@ def main(argv=None):
     g.add_argument("--scenes", type=int, help="number of scenes (default from config)")
     g.add_argument("--post", action="store_true", help="post to Instagram right after rendering")
     g.set_defaults(fn=cmd_generate)
+
+    r = sub.add_parser("render", help="re-render a folder after editing story.json or deleting scene images")
+    r.add_argument("folder")
+    r.set_defaults(fn=cmd_render)
+
+    rd = sub.add_parser("redraw", help="regenerate one scene's image and re-render")
+    rd.add_argument("folder")
+    rd.add_argument("--scene", type=int, required=True, help="scene number, starting at 1")
+    rd.add_argument("--hint", help="extra direction, e.g. 'Max looks surprised, closer shot'")
+    rd.set_defaults(fn=cmd_redraw)
+
+    sub.add_parser("mascot", help="(re)draw the mascot reference image").set_defaults(fn=cmd_mascot)
 
     po = sub.add_parser("post", help="post a generated folder to Instagram")
     po.add_argument("folder")

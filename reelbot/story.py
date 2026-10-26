@@ -43,18 +43,23 @@ class CharacterInScene:
 @dataclass
 class Scene:
     narration: str
-    background: str
-    time_of_day: str
-    effect: str
-    props: list[str]
-    characters: list[CharacterInScene]
+    # cartoon style: what the 2D renderer draws
+    background: str = "meadow"
+    time_of_day: str = "day"
+    effect: str = "none"
+    props: list[str] = field(default_factory=list)
+    characters: list[CharacterInScene] = field(default_factory=list)
+    # illustrated style: what the image model draws, and who is in the picture
+    image_prompt: str = ""
+    cast: list[str] = field(default_factory=list)
 
 
 @dataclass
 class Character:
     name: str
-    kind: str
-    color: str
+    kind: str = "person"
+    color: str = "blue"
+    description: str = ""  # visual description for the image model
 
 
 @dataclass
@@ -78,11 +83,13 @@ class Story:
         scenes = [
             Scene(
                 narration=s["narration"],
-                background=s["background"],
-                time_of_day=s["time_of_day"],
-                effect=s["effect"],
+                background=s.get("background", "meadow"),
+                time_of_day=s.get("time_of_day", "day"),
+                effect=s.get("effect", "none"),
                 props=list(s.get("props", [])),
                 characters=[CharacterInScene(**c) for c in s.get("characters", [])],
+                image_prompt=s.get("image_prompt", ""),
+                cast=list(s.get("cast", [])),
             )
             for s in d["scenes"]
         ]
@@ -207,17 +214,99 @@ class StoryError(RuntimeError):
     pass
 
 
+ILLUSTRATED_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["title", "hook", "moral", "characters", "scenes", "caption", "hashtags"],
+    "properties": {
+        "title": {"type": "string"},
+        "hook": {"type": "string"},
+        "moral": {"type": "string"},
+        "characters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["name", "description"],
+                "properties": {"name": {"type": "string"}, "description": {"type": "string"}},
+            },
+        },
+        "scenes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["narration", "image_prompt", "cast"],
+                "properties": {
+                    "narration": {"type": "string"},
+                    "image_prompt": {"type": "string"},
+                    "cast": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        },
+        "caption": {"type": "string"},
+        "hashtags": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
+ILLUSTRATED_SYSTEM_PROMPT = """You write short narrated stories for Instagram Reels. Each scene becomes \
+one illustrated still image shown while a narrator reads the scene's narration.
+
+The art style is fixed elsewhere: stick-figure characters with big round heads in detailed, \
+realistic-looking everyday settings. Your image_prompt only describes the content of one picture.
+
+Story rules:
+- The first narration is a hook that makes a viewer keep watching.
+- A clear arc: setup, a problem or twist, a turning point, a satisfying or funny ending.
+- Narration is told in first person by the main character or in close third person; one to three short \
+spoken sentences per scene (about 12-35 words). It is read aloud by text-to-speech.
+- Stories can be relatable everyday situations, comedy, light drama, mystery or mild spooky fun; keep \
+them suitable for a general audience. No real people, brands or copyrighted characters.
+
+Characters:
+- {mascot_rule}
+- List every other character in "characters" with a short visual description (body, hair, clothes, \
+colors, distinguishing items) so they can be drawn the same way in every scene.
+
+image_prompt rules (one per scene):
+- Describe a single moment: the setting in concrete detail (place, objects, time of day, lighting, \
+weather), who is in it, their pose, action and facial expression, and the camera framing.
+- Refer to characters by name; do not repeat their visual description.
+- The image is vertical (9:16): stack the composition vertically and keep the main action in the middle.
+- No text, signs with words, captions or speech bubbles in the picture.
+- "cast" lists the names of the characters visible in that scene.
+
+Caption rules:
+- 1-3 sentences that tease the story without spoiling the ending, then a call to action (a question \
+or an invitation to follow). Up to two emoji.
+- hashtags: 8-15 relevant tags without the # sign, mixing broad and niche tags."""
+
+
+def prompt_spec(style: str, mascot: dict | None) -> tuple[str, dict]:
+    """System prompt and output schema for a render style."""
+    if style == "cartoon":
+        return SYSTEM_PROMPT, STORY_SCHEMA
+    if mascot and mascot.get("name"):
+        rule = (f"The main character of every story is {mascot['name']}. Do not add them to "
+                f"\"characters\"; their look is fixed by a reference image. Add 0-3 other characters.")
+    else:
+        rule = "Create 1-3 characters, one of them clearly the main character."
+    return ILLUSTRATED_SYSTEM_PROMPT.replace("{mascot_rule}", rule), ILLUSTRATED_SCHEMA
+
+
 def write_story(topic: dict, *, model: str, effort: str, scene_count: int,
-                recent_titles: list[str] | None = None, language: str = "English") -> Story:
-    """Ask Claude for a story matching STORY_SCHEMA."""
+                recent_titles: list[str] | None = None, language: str = "English",
+                style: str = "cartoon", mascot: dict | None = None) -> Story:
+    """Ask Claude for a story in the schema of the given render style."""
     import anthropic
 
+    system, schema = prompt_spec(style, mascot)
     client = anthropic.Anthropic()
     try:
         response = client.messages.create(
             model=model,
             max_tokens=16000,
-            system=SYSTEM_PROMPT,
+            system=system,
             messages=[{
                 "role": "user",
                 "content": build_prompt(topic, scene_count, recent_titles or [], language),
@@ -225,7 +314,7 @@ def write_story(topic: dict, *, model: str, effort: str, scene_count: int,
             thinking={"type": "adaptive"},
             output_config={
                 "effort": effort,
-                "format": {"type": "json_schema", "schema": STORY_SCHEMA},
+                "format": {"type": "json_schema", "schema": schema},
             },
         )
     except anthropic.AuthenticationError as e:
@@ -245,6 +334,9 @@ def write_story(topic: dict, *, model: str, effort: str, scene_count: int,
     text = next(b.text for b in response.content if b.type == "text")
     story = Story.from_dict(json.loads(text))
     story.topic = topic["name"]
+    if style != "cartoon" and mascot and mascot.get("name"):
+        if all(c.name != mascot["name"] for c in story.characters):
+            story.characters.insert(0, Character(name=mascot["name"], description=mascot.get("description", "")))
     return sanitize(story)
 
 

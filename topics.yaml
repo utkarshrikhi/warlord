@@ -57,3 +57,24 @@ seasons:
   mood: cozy, festive
   audience: everyone
   hashtags: [seasons, cozy, animation, storytime]
+
+relatable:
+  name: Relatable everyday moment
+  description: A small, painfully relatable everyday situation (alarm, school, work, family, phone) that escalates and ends with a funny twist.
+  mood: funny, self-aware storytime
+  audience: teens and young adults
+  hashtags: [relatable, storytime, funny, animatedstory]
+
+zombies:
+  name: Zombie day
+  description: An ordinary morning turns into a zombie outbreak; the main character survives thanks to something silly or unexpected.
+  mood: tense but funny, not gory
+  audience: teens and adults
+  hashtags: [zombie, storytime, animatedstory, twist]
+
+creepy:
+  name: Creepy-but-harmless mystery
+  description: Something strange keeps happening (noises at night, a note, a stranger); it builds tension and ends with a harmless or heartwarming reveal.
+  mood: suspenseful, cozy-creepy
+  audience: teens and adults
+  hashtags: [mystery, creepy, storytime, plottwist]

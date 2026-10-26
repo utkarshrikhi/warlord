@@ -2,8 +2,10 @@
 
 Auto-generates short animated story videos and posts them to Instagram as Reels.
 
-1. **Story**: Claude writes a short story from a preset topic or your own idea: title, 4-7 scenes, speech bubbles, a moral, a caption and hashtags.
-2. **Visuals**: a built-in 2D renderer draws every scene in code (12 backgrounds, 9 character types, 15 props, weather/particle effects, walking/jumping/dancing/talking animation). No image API and no per-image cost.
+1. **Story**: Claude writes a short story from a preset topic or your own idea: title, 4-7 scenes with narration and a detailed picture description each, a caption and hashtags.
+2. **Visuals** (two styles, set `video.style`):
+   - `illustrated` (default): an image model (Gemini or OpenAI) draws one 9:16 still per scene in a storytime-channel look: stick-figure characters with round heads in detailed, realistic-looking settings. A recurring **mascot** is kept consistent through a reference image. Stills get a slow pan/zoom and crossfades.
+   - `cartoon`: a built-in 2D renderer draws and animates every scene in code. Free and offline, simpler look.
 3. **Audio**: free neural text-to-speech narration (edge-tts), burned-in subtitles synced word by word to the voice, and optional background music mixed under it.
 4. **Posting**: uploads through the official Instagram Graph API, either on demand or on a schedule.
 
@@ -24,6 +26,20 @@ Optional: put royalty-free music tracks in `assets/music/` (one is picked per vi
 ### Anthropic API key
 
 Create one at https://console.anthropic.com and set `ANTHROPIC_API_KEY` in `.env`. Each story is one request.
+
+### Image API key (illustrated style)
+
+- **Gemini** (default): get a key at https://aistudio.google.com/apikey and set `GEMINI_API_KEY`. Model: `images.gemini_model`.
+- **OpenAI**: `pip install -e ".[openai]"`, set `OPENAI_API_KEY` and `images.provider: openai`. Model: `images.openai_model`.
+- **placeholder**: no key, no cost; draws labeled cards so you can test timing, voice and posting.
+
+A reel uses one image per scene (plus the mascot sheet once), so 5 scenes = 5 images.
+
+### Mascot
+
+`config.yaml` defines the recurring main character (`mascot.name` / `mascot.description`, by default Max with a red cap). On the first run its reference sheet is drawn to `assets/mascot.png` and then attached to every scene request, so it looks the same in every video. Look at it once: if you don't like it, run `reelbot mascot` to redraw it, or replace the file with your own drawing. Commit it if you post from GitHub Actions.
+
+To change the overall look, edit `images.style`; it is sent with every image request.
 
 ### Instagram access
 
@@ -48,17 +64,26 @@ reelbot topics                                    # list preset plots
 reelbot generate --topic space                    # make a video from a preset
 reelbot generate --prompt "a shy penguin who wants to see the desert"
 reelbot generate --topic bedtime --post           # make it and post it
-reelbot generate --story examples/sample_story.json   # render a story file without calling Claude
+reelbot generate --story examples/sample_illustrated.json   # render a story file without calling Claude
 reelbot post output/20261026-150545-pip-and-the-lost-star
 reelbot auto --dry-run                            # next topic in rotation, don't post
 reelbot history
 ```
 
-Each run writes a folder in `output/` with `video.mp4`, `caption.txt`, `story.json` and `thumbnail.jpg`. To tweak a story before posting, edit `story.json` and re-render it with `--story`.
+Each run writes a folder in `output/` with `video.mp4`, `caption.txt`, `story.json`, `thumbnail.jpg`, the scene images (`scene_00.png`, ...) and the exact prompt used for each image.
+
+Fixing a video before you post it:
+
+```bash
+reelbot redraw output/<folder> --scene 3 --hint "Max looks terrified, closer shot"   # redraw one image
+reelbot render output/<folder>     # after editing story.json (narration, caption...) or deleting images
+```
+
+Only missing images are drawn, so re-rendering after a text edit costs nothing.
 
 ### Topics
 
-`topics.yaml` holds the preset plots: friendship, bedtime fable, space adventure, funny animals, never give up, kindness, little mystery and seasonal. Add your own:
+`topics.yaml` holds the preset plots: relatable everyday moment, zombie day, creepy-but-harmless mystery, friendship, bedtime fable, space adventure, funny animals, never give up, kindness, little mystery and seasonal. Add your own:
 
 ```yaml
 dragons:
@@ -83,7 +108,7 @@ or call `reelbot auto` from cron, e.g. `30 9 * * * cd /path/to/warlord && reelbo
 
 **B. GitHub Actions** (no machine to keep running): `.github/workflows/post-reel.yml` is included.
 
-1. Add repository secrets `ANTHROPIC_API_KEY`, `IG_USER_ID` and `IG_ACCESS_TOKEN`.
+1. Add repository secrets `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` (or `OPENAI_API_KEY`), `IG_USER_ID` and `IG_ACCESS_TOKEN`, and commit `assets/mascot.png`.
 2. Add the repository variable `REELBOT_ENABLED` = `true` to turn on the schedule (edit the `cron` lines for your times, in UTC).
 3. You can also run it by hand from the Actions tab, with an optional topic or prompt. Every run uploads the video as a downloadable artifact.
 
@@ -95,6 +120,10 @@ Topic rotation uses `output/history.json` (kept in the Actions cache), so it pic
 
 | Setting | What it does |
 |---|---|
+| `video.style` | `illustrated` (AI images) or `cartoon` (code-drawn) |
+| `images.provider` | `gemini`, `openai` or `placeholder` |
+| `images.style` | the art style sent with every image request |
+| `mascot` | the recurring main character |
 | `claude.scenes` | scenes per story (4-7 keeps reels short) |
 | `claude.language` | language for narration and caption |
 | `tts.voice` | any edge-tts voice; list them with `edge-tts --list-voices` |

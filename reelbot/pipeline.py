@@ -85,7 +85,8 @@ def generate(cfg: dict, *, topic_key: str | None = None, prompt: str | None = No
         log(f"Writing a story for: {topic['name']}")
         story = write_story(topic, model=c["model"], effort=c["effort"],
                             scene_count=scenes or c["scenes"], recent_titles=recent,
-                            language=c.get("language", "English"))
+                            language=c.get("language", "English"),
+                            style=cfg["video"].get("style", "illustrated"), mascot=cfg.get("mascot"))
     log(f"Story: {story.title} ({len(story.scenes)} scenes)")
 
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -102,6 +103,33 @@ def generate(cfg: dict, *, topic_key: str | None = None, prompt: str | None = No
             created_at=datetime.now(timezone.utc).isoformat())
     log(f"Done: {folder / 'video.mp4'}")
     return folder
+
+
+def render(cfg: dict, folder: Path, log=print) -> Path:
+    """Re-render a generated folder after editing story.json or deleting images."""
+    folder = Path(folder)
+    story = Story.from_dict(json.loads((folder / "story.json").read_text()))
+    ig = cfg["instagram"]
+    (folder / "caption.txt").write_text(story.full_caption(ig.get("always_hashtags"), ig.get("max_hashtags", 15)))
+    make_video(story, cfg, folder, log=log)
+    make_thumbnail(story, cfg, folder / "thumbnail.jpg")
+    log(f"Done: {folder / 'video.mp4'}")
+    return folder
+
+
+def redraw(cfg: dict, folder: Path, scene: int, hint: str | None = None, log=print) -> Path:
+    """Regenerate one scene image (1-based), optionally adding to its description, then re-render."""
+    folder = Path(folder)
+    story_path = folder / "story.json"
+    data = json.loads(story_path.read_text())
+    if not 1 <= scene <= len(data["scenes"]):
+        raise ValueError(f"Scene must be between 1 and {len(data['scenes'])}")
+    if hint:
+        sc = data["scenes"][scene - 1]
+        sc["image_prompt"] = f"{sc.get('image_prompt', '')} {hint}".strip()
+        story_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    (folder / f"scene_{scene - 1:02d}.png").unlink(missing_ok=True)
+    return render(cfg, folder, log=log)
 
 
 def post(cfg: dict, folder: Path, log=print) -> dict:

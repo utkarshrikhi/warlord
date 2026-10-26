@@ -48,7 +48,14 @@ def make_video(story: Story, cfg: dict, out_dir: Path, log=print) -> Path:
     track = audio.mix_track(clips, total, music, cfg["music"].get("volume", 0.12), work / "mix.wav")
 
     out = out_dir / "video.mp4"
-    renderer = Renderer(story, segments, vcfg)
+    if vcfg.get("style", "illustrated") == "illustrated":
+        from .images import generate_scene_images
+        from .render.stills import StillsRenderer
+
+        images = generate_scene_images(story, cfg, out_dir, log=log)
+        renderer = StillsRenderer(story, segments, vcfg, images)
+    else:
+        renderer = Renderer(story, segments, vcfg)
     log(f"  rendering {total:.1f}s at {vcfg['width']}x{vcfg['height']} {vcfg['fps']}fps")
     renderer.write(out, track, progress=lambda i, n: log(f"    frame {i}/{n}") if i % (vcfg["fps"] * 5) == 0 else None)
     return out
@@ -57,5 +64,12 @@ def make_video(story: Story, cfg: dict, out_dir: Path, log=print) -> Path:
 def make_thumbnail(story: Story, cfg: dict, out: Path) -> Path:
     """Still from the first scene, for previews or as a cover image."""
     seg = Segment(start=0, duration=4, scene_index=0)
-    Renderer(story, [seg], cfg["video"]).frame(1.2).save(out, quality=90)
+    first = out.parent / "scene_00.png"
+    if cfg["video"].get("style", "illustrated") == "illustrated" and first.is_file():
+        from .render.stills import StillsRenderer
+
+        renderer = StillsRenderer(story, [seg], cfg["video"], [first])
+    else:
+        renderer = Renderer(story, [seg], cfg["video"])
+    renderer.frame(1.2).convert("RGB").save(out, quality=90)
     return out

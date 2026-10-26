@@ -1,0 +1,19 @@
+{
+  "title": "The Alarm That Saved Me",
+  "hook": "My alarm didn't ring this morning, and that's the only reason I'm alive.",
+  "moral": "Sometimes being late is exactly on time.",
+  "topic": "Little mystery",
+  "characters": [
+    {"name": "Max", "description": ""},
+    {"name": "Lena", "description": "a stick-figure woman with a round beige head, long straight black hair, a blue-gray t-shirt and a dark gray skirt, barefoot"}
+  ],
+  "scenes": [
+    {"narration": "My alarm didn't ring this morning. At first I was mad. Now I think it saved my life.", "image_prompt": "Max sits on the edge of a neatly made bed in a plain beige bedroom, staring blankly at a black twin-bell alarm clock on a wooden nightstand that reads 8 o'clock. Soft morning light falls diagonally through a tall window with light blue curtains. Medium-wide shot.", "cast": ["Max"]},
+    {"narration": "The street outside was silent. No cars moving, no birds. Just my neighbor Lena, running barefoot toward me.", "image_prompt": "View from Max's apartment doorway onto a gray, overcast city street lined with beige apartment blocks and parked cars. Lena runs barefoot down the middle of the street toward the viewer with a frightened face. Max stands in the doorway in the foreground, seen from behind.", "cast": ["Max", "Lena"]},
+    {"narration": "Behind her, something was shuffling out of the fog. Something that used to be the mailman.", "image_prompt": "Lena runs toward the left of the frame looking back over her shoulder, terrified, on a foggy street with parked cars. Behind her, a green-skinned cartoon zombie stick figure with a cracked round head, torn gray clothes and one shoe limps after her with arms outstretched. Hazy streetlights glow in the fog.", "cast": ["Lena"]},
+    {"narration": "We locked ourselves in and listened to the news. Everyone who left on time this morning never made it to work.", "image_prompt": "Max and Lena sit side by side on a worn couch in a dim living room, faces lit by the bluish glow of an old television. Lena hugs a cushion. The window behind them has the blinds closed with thin stripes of gray light.", "cast": ["Max", "Lena"]},
+    {"narration": "So now I keep that broken alarm clock on my shelf. Best thing I never fixed.", "image_prompt": "Close-up of the black twin-bell alarm clock sitting proudly on a small wooden shelf next to a potted plant, warm sunset light. Max, slightly out of focus in the background, smiles at it with his arms crossed.", "cast": ["Max"]}
+  ],
+  "caption": "My alarm didn't ring... and that's the only reason I'm still here. Would you have opened the door? 🧟",
+  "hashtags": ["storytime", "animatedstory", "zombie", "shortstory", "cartoon", "relatable", "funnystory", "reels"]
+}

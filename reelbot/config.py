@@ -16,6 +16,9 @@ DEFAULTS = {
         "language": "English",
     },
     "video": {
+        "style": "illustrated",  # illustrated (AI image per scene) | cartoon (code-drawn, free)
+        "motion": True,          # slow pan/zoom on illustrated stills
+        "show_title": True,
         "width": 1080,
         "height": 1920,
         "fps": 30,
@@ -36,6 +39,32 @@ DEFAULTS = {
         "language": "en",
     },
     "music": {"dir": "assets/music", "volume": 0.12},
+    "images": {
+        "provider": "gemini",  # gemini | openai | placeholder (free offline preview)
+        "gemini_model": "gemini-nano-banana-2.1",
+        "openai_model": "gpt-image-2",
+        "openai_size": "1024x1536",
+        "openai_quality": "medium",
+        "aspect_ratio": "9:16",
+        "image_size": "2K",
+        "parallel": 3,
+        "style": (
+            "Clean 2D digital cartoon illustration like popular animated storytime channels. Characters are "
+            "simple stick figures with large round white heads, thin black line arms and legs, small dot eyes "
+            "and small expressive mouths; some wear simple clothes (t-shirt, skirt, cap) and have simple "
+            "cartoon hair. Backgrounds are detailed and realistic-looking everyday places drawn with clean "
+            "dark outlines, flat soft shading, accurate perspective, soft natural light and a muted, slightly "
+            "desaturated color palette."
+        ),
+    },
+    "mascot": {
+        "name": "Max",
+        "description": (
+            "a stick-figure guy with a big round white head, a red baseball cap, messy brown hair sticking out "
+            "under the cap, small black dot eyes, thin black line body, arms and legs, and white sneakers"
+        ),
+        "reference": "assets/mascot.png",
+    },
     "instagram": {
         "graph_host": "graph.facebook.com",
         "api_version": "v23.0",
@@ -56,7 +85,7 @@ DEFAULTS = {
 }
 
 SECRET_ENV = [
-    "ANTHROPIC_API_KEY", "IG_USER_ID", "IG_ACCESS_TOKEN",
+    "ANTHROPIC_API_KEY", "IG_USER_ID", "IG_ACCESS_TOKEN", "GEMINI_API_KEY", "OPENAI_API_KEY",
     "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET",
 ]
 
